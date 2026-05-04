@@ -7,7 +7,6 @@ namespace QLNhaTro.Helpers
 {
     public static class AppTheme
     {
-        // Sidebar (Deep Jungle Green/Teal)
         public static readonly Color SidebarBg = Color.FromArgb(19, 42, 40);
         public static readonly Color SidebarLogoBg = Color.FromArgb(19, 42, 40);
         public static readonly Color SidebarLogoText = Color.FromArgb(247, 244, 235); // Warm Ivory
@@ -18,23 +17,18 @@ namespace QLNhaTro.Helpers
         public static readonly Color SidebarAccentStripe = Color.FromArgb(242, 157, 82); // Ochre
         public static readonly Color SidebarFooter = Color.FromArgb(106, 130, 126);
 
-        // Header
         public static readonly Color HeaderBg = Color.FromArgb(247, 244, 235); // Warm Ivory
         public static readonly Color HeaderBorder = Color.FromArgb(212, 203, 179);
 
-        // Content
         public static readonly Color ContentBg = Color.FromArgb(235, 230, 216); // Beige/Sand
 
-        // Cards
         public static readonly Color CardBg = Color.FromArgb(247, 244, 235);
         public static readonly Color CardBorder = Color.FromArgb(212, 203, 179);
 
-        // Text
         public static readonly Color TextPrimary = Color.FromArgb(45, 58, 56);
         public static readonly Color TextSecondary = Color.FromArgb(102, 112, 110);
         public static readonly Color TextMuted = Color.FromArgb(154, 163, 161);
 
-        // Accent colors (Curated Muted Tones)
         public static readonly Color AccentBlue = Color.FromArgb(44, 94, 88); // Dark Teal
         public static readonly Color AccentGreen = Color.FromArgb(92, 124, 89); // Muted Moss
         public static readonly Color AccentAmber = Color.FromArgb(217, 138, 74); // Burnt Orange
@@ -43,7 +37,6 @@ namespace QLNhaTro.Helpers
         public static readonly Color AccentIndigo = Color.FromArgb(69, 90, 115); // Muted Navy
         public static readonly Color AccentCyan = Color.FromArgb(106, 130, 126);
 
-        // DataGridView
         public static readonly Color DgvHeaderBg = Color.FromArgb(247, 244, 235);
         public static readonly Color DgvHeaderFg = Color.FromArgb(45, 58, 56);
         public static readonly Color DgvAltRow = Color.FromArgb(242, 239, 230);
@@ -51,11 +44,9 @@ namespace QLNhaTro.Helpers
         public static readonly Color DgvSelectionBg = Color.FromArgb(44, 94, 88);
         public static readonly Color DgvSelectionFg = Color.FromArgb(247, 244, 235);
 
-        // StatusBar
         public static readonly Color StatusBg = Color.FromArgb(247, 244, 235);
         public static readonly Color StatusFg = Color.FromArgb(102, 112, 110);
 
-        // Fonts (Editorial / Architectural with Vietnamese Support)
         public static readonly Font FontTitle = new("Segoe UI Semibold", 18F, FontStyle.Bold);
         public static readonly Font FontHeader = new("Segoe UI Semibold", 13F, FontStyle.Bold);
         public static readonly Font FontBody = new("Segoe UI", 10.5F);
@@ -97,7 +88,6 @@ namespace QLNhaTro.Helpers
             }
         }
 
-        // Button factory
         public static Button CreatePrimaryButton(string text, int w = 130, int h = 36)
         {
             var btn = new Button

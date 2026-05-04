@@ -34,7 +34,7 @@ namespace QLNhaTro.UserControls
             filters.Parent!.Visible = false;
             actions.Visible = false;
             
-            content.Padding = new Padding(24, 0, 24, 24); // More horizontal padding
+            content.Padding = new Padding(24, 0, 24, 24);
             content.BackColor = AppTheme.ContentBg;
 
             var root = new TableLayoutPanel
@@ -46,7 +46,7 @@ namespace QLNhaTro.UserControls
                 Margin = new Padding(0)
             };
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 150)); // Fixed height for 5 cards in a row
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             content.Controls.Add(root);
 
@@ -79,7 +79,7 @@ namespace QLNhaTro.UserControls
                 ColumnCount = 2,
                 RowCount = 1,
                 Padding = new Padding(0),
-                Margin = new Padding(0, 12, 0, 0), // Gap from top row
+                Margin = new Padding(0, 12, 0, 0),
                 BackColor = Color.Transparent
             };
             pnlBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
@@ -107,7 +107,7 @@ namespace QLNhaTro.UserControls
                 dgvUnpaid.Rows.Add(hd.MaHoaDon, hd.HopDong.Phong.TenPhong, $"{hd.Thang}/{hd.Nam}", FormatHelper.FormatVND(hd.TongTien));
             
             var cardUnpaid = CreateSectionCard("Hóa đơn chưa thanh toán", "10 hóa đơn mới nhất", AppTheme.AccentRed, dgvUnpaid);
-            cardUnpaid.Margin = new Padding(0); // Last column no right margin
+            cardUnpaid.Margin = new Padding(0);
             pnlBottom.Controls.Add(cardUnpaid, 1, 0);
         }
 
@@ -135,7 +135,6 @@ namespace QLNhaTro.UserControls
                 e.Graphics.FillRectangle(accentBrush, accentRect);
             };
 
-            // Use labels that actually wrap or truncate properly
             var lblLabel = new Label
             {
                 Text = label.ToUpperInvariant(),
