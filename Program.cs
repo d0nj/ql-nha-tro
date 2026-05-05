@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using QLNhaTro.Data;
+using QLNhaTro.Helpers;
 
 namespace QLNhaTro
 {
@@ -8,12 +7,14 @@ namespace QLNhaTro
         [STAThread]
         static void Main()
         {
-            using (var db = new AppDbContext())
+            ApplicationConfiguration.Initialize();
+
+            // Auto-initialize the database (runs migrations, ensures path is dynamic, handles errors)
+            if (!DatabaseInitializer.Initialize())
             {
-                db.Database.Migrate();
+                return; // Exit if database initialization fails
             }
 
-            ApplicationConfiguration.Initialize();
             Application.Run(new Forms.Main.FrmMain());
         }
     }
