@@ -16,7 +16,6 @@ namespace QLNhaTro.Helpers
         /// <returns>True if successful or already initialized, false if an error occurred.</returns>
         public static bool Initialize()
         {
-            // Ensure thread safety so initialization only happens once
             if (Interlocked.Exchange(ref _initialized, 1) == 1)
             {
                 return true;
@@ -26,9 +25,6 @@ namespace QLNhaTro.Helpers
             {
                 using (var context = new AppDbContext())
                 {
-                    // Applies any pending migrations for the context to the database.
-                    // Will create the database if it does not already exist.
-                    // The path is dynamically resolved in AppDbContext.OnConfiguring.
                     context.Database.Migrate();
                 }
                 return true;

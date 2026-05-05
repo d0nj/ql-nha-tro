@@ -68,7 +68,7 @@ namespace QLNhaTro.UserControls
             pnlCards.Controls.Add(CreateStatCard("Đang thuê", phongDangThue.ToString(), AppTheme.AccentAmber, "Phòng có hợp đồng"), 2, 0);
             pnlCards.Controls.Add(CreateStatCard("Doanh thu tháng", FormatHelper.FormatVND(doanhThu), AppTheme.AccentPurple, $"Tháng {DateTime.Now:MM/yyyy}"), 3, 0);
             var lastCard = CreateStatCard("Khách thuê", tongKhach.ToString(), AppTheme.AccentCyan, $"{chuaThanhToan} hóa đơn chưa thanh toán");
-            lastCard.Margin = new Padding(0, 0, 0, 0); // No right margin for last card
+            lastCard.Margin = new Padding(0, 0, 0, 0);
             pnlCards.Controls.Add(lastCard, 4, 0);
             
             root.Controls.Add(pnlCards, 0, 0);
