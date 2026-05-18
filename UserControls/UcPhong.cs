@@ -1,3 +1,4 @@
+using System.Drawing.Drawing2D;
 using QLNhaTro.Helpers;
 using QLNhaTro.Models;
 using QLNhaTro.Services;
@@ -7,7 +8,7 @@ namespace QLNhaTro.UserControls
     public class UcPhong : UserControl
     {
         private readonly PhongService _svc = new();
-        private DataGridView dgv = null!;
+        private FlowLayoutPanel pnlCards = null!;
         private TextBox txtSearch = null!;
         private ComboBox cboTrangThai = null!;
 
@@ -33,7 +34,7 @@ namespace QLNhaTro.UserControls
             cboTrangThai.SelectedIndex = 0;
             cboTrangThai.SelectedIndexChanged += (s, e) => LoadData();
 
-            var btnAdd = AppTheme.CreatePrimaryButton("Thêm phòng", 132);
+            var btnAdd = AppTheme.CreatePrimaryButton("Thêm phòng", 148, 36, AppIcons.Btn.Add);
             btnAdd.Click += (s, e) => { using var frm = new Forms.Phong.FrmPhongEdit(); if (frm.ShowDialog() == DialogResult.OK) LoadData(); };
 
             filters.Controls.Add(AppTheme.CreateCommandLabel("Tìm kiếm"));
@@ -42,60 +43,238 @@ namespace QLNhaTro.UserControls
             filters.Controls.Add(cboTrangThai);
             actions.Controls.Add(btnAdd);
 
-            dgv = new DataGridView { Dock = DockStyle.Fill, Font = AppTheme.FontSmall };
-            AppTheme.StyleDataGridView(dgv);
-            dgv.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) EditSelected(); };
-
-            var ctx = new ContextMenuStrip { Font = AppTheme.FontBody };
-            ctx.Items.Add("Sửa phòng", null, (s, e) => EditSelected());
-            ctx.Items.Add(new ToolStripSeparator());
-            ctx.Items.Add("Xóa phòng", null, (s, e) => DeleteSelected());
-            dgv.ContextMenuStrip = ctx;
-
-            content.Controls.Add(dgv);
+            pnlCards = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                BackColor = AppTheme.CardBg,
+                Padding = new Padding(20),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true
+            };
+            content.Controls.Add(pnlCards);
         }
 
         private void LoadData()
         {
-            TrangThaiPhong? filter = cboTrangThai.SelectedIndex switch { 1 => TrangThaiPhong.Trong, 2 => TrangThaiPhong.DangThue, 3 => TrangThaiPhong.SuaChua, _ => null };
-            var data = _svc.Search(txtSearch.Text, filter);
-
-            dgv.Columns.Clear();
-            dgv.Columns.Add("Id", "ID"); dgv.Columns["Id"]!.Visible = false;
-            dgv.Columns.Add("MaPhong", "Mã phòng");
-            dgv.Columns.Add("TenPhong", "Tên phòng");
-            dgv.Columns.Add("GiaThue", "Giá thuê");
-            dgv.Columns.Add("DienTich", "Diện tích (m²)");
-            dgv.Columns.Add("SoNguoi", "Tối đa");
-            dgv.Columns.Add("TrangThai", "Trạng thái");
-            dgv.Columns.Add("MoTa", "Mô tả");
-
-            dgv.Rows.Clear();
-            foreach (var p in data)
+            TrangThaiPhong? filter = cboTrangThai.SelectedIndex switch
             {
-                var row = dgv.Rows.Add(p.Id, p.MaPhong, p.TenPhong, FormatHelper.FormatVND(p.GiaThue), p.DienTich.ToString("N1"), p.SoNguoiToiDa,
-                    p.TrangThai switch { TrangThaiPhong.Trong => "Trống", TrangThaiPhong.DangThue => "Đang thuê", TrangThaiPhong.SuaChua => "Sửa chữa", _ => "" },
-                    p.MoTa ?? "");
+                1 => TrangThaiPhong.Trong,
+                2 => TrangThaiPhong.DangThue,
+                3 => TrangThaiPhong.SuaChua,
+                _ => null
+            };
+            var data = _svc.Search(txtSearch.Text, filter).ToList();
+
+            pnlCards.SuspendLayout();
+            foreach (Control c in pnlCards.Controls) c.Dispose();
+            pnlCards.Controls.Clear();
+
+            if (data.Count == 0)
+            {
+                pnlCards.Controls.Add(CreateEmptyState());
             }
+            else
+            {
+                foreach (var p in data)
+                    pnlCards.Controls.Add(CreateRoomCard(p));
+            }
+            pnlCards.ResumeLayout();
         }
 
-        private void EditSelected()
+        private Control CreateRoomCard(Phong p)
         {
-            if (dgv.CurrentRow == null) return;
-            using var frm = new Forms.Phong.FrmPhongEdit((int)dgv.CurrentRow.Cells["Id"].Value);
+            var (statusColor, statusText) = StatusFor(p.TrangThai);
+
+            var card = new DoubleBufferedPanel
+            {
+                Width = 248,
+                Height = 162,
+                Margin = new Padding(0, 0, 16, 16),
+                BackColor = AppTheme.CardBg,
+                Cursor = Cursors.Hand
+            };
+
+            bool hovered = false;
+
+            card.Paint += (s, e) =>
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                var bgFill = hovered
+                    ? Blend(AppTheme.CardBg, statusColor, AppTheme.IsDark ? 0.08f : 0.05f)
+                    : AppTheme.CardBg;
+                using var path = AppTheme.RoundedRectPath(0, 0, card.Width - 1, card.Height - 1, 10);
+                using var fillBrush = new SolidBrush(bgFill);
+                g.FillPath(fillBrush, path);
+                using var borderPen = new Pen(hovered ? statusColor : AppTheme.CardBorder, hovered ? 1.5f : 1f);
+                g.DrawPath(borderPen, path);
+
+                using var topStrip = new GraphicsPath();
+                int sw = card.Width - 1;
+                topStrip.AddArc(0, 0, 20, 20, 180, 90);
+                topStrip.AddArc(sw - 20, 0, 20, 20, 270, 90);
+                topStrip.AddLine(sw, 4, 0, 4);
+                topStrip.CloseFigure();
+                using var stripBrush = new SolidBrush(statusColor);
+                g.FillPath(stripBrush, topStrip);
+
+                AppTheme.DrawPill(g,
+                    new Rectangle(card.Width - 116, card.Height - 38, 104, 28),
+                    statusText, statusColor);
+            };
+
+            void SetHover(bool h) { hovered = h; card.Invalidate(); }
+            card.MouseEnter += (s, e) => SetHover(true);
+            card.MouseLeave += (s, e) => SetHover(false);
+
+            var lblName = new Label
+            {
+                Text = p.TenPhong,
+                Font = AppTheme.FontHeader,
+                ForeColor = AppTheme.TextPrimary,
+                Location = new Point(18, 18),
+                Size = new Size(card.Width - 36, 24),
+                BackColor = Color.Transparent,
+                AutoEllipsis = true,
+                UseMnemonic = false
+            };
+            var lblCode = new Label
+            {
+                Text = p.MaPhong,
+                Font = AppTheme.FontSmall,
+                ForeColor = AppTheme.TextMuted,
+                Location = new Point(18, 44),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                UseMnemonic = false
+            };
+            var lblPrice = new Label
+            {
+                Text = FormatHelper.FormatVND(p.GiaThue),
+                Font = new Font("Segoe UI", 16F, FontStyle.Bold),
+                ForeColor = AppTheme.AccentBlue,
+                Location = new Point(18, 66),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                UseMnemonic = false
+            };
+            var lblMeta = new Label
+            {
+                Text = $"{p.DienTich:N1} m²    ·    Tối đa {p.SoNguoiToiDa} người",
+                Font = AppTheme.FontSmall,
+                ForeColor = AppTheme.TextSecondary,
+                Location = new Point(18, 100),
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                UseMnemonic = false
+            };
+
+            card.Controls.Add(lblName);
+            card.Controls.Add(lblCode);
+            card.Controls.Add(lblPrice);
+            card.Controls.Add(lblMeta);
+
+            void OnEdit(object? s, EventArgs e) { EditRoom(p.Id); }
+            card.Click += OnEdit;
+            foreach (Control c in card.Controls)
+            {
+                c.Click += OnEdit;
+                c.MouseEnter += (s, e) => SetHover(true);
+                c.MouseLeave += (s, e) =>
+                {
+                    var pos = card.PointToClient(Cursor.Position);
+                    if (!card.ClientRectangle.Contains(pos)) SetHover(false);
+                };
+            }
+
+            var ctx = new ContextMenuStrip { Font = AppTheme.FontBody };
+            ctx.Items.Add("Sửa phòng", null, (s, e) => EditRoom(p.Id));
+            ctx.Items.Add(new ToolStripSeparator());
+            ctx.Items.Add("Xóa phòng", null, (s, e) => DeleteRoom(p.Id, p.TenPhong));
+            card.ContextMenuStrip = ctx;
+            foreach (Control c in card.Controls) c.ContextMenuStrip = ctx;
+
+            return card;
+        }
+
+        private static (Color color, string text) StatusFor(TrangThaiPhong status) => status switch
+        {
+            TrangThaiPhong.Trong => (AppTheme.AccentGreen, "Trống"),
+            TrangThaiPhong.DangThue => (AppTheme.AccentBlue, "Đang thuê"),
+            TrangThaiPhong.SuaChua => (AppTheme.AccentAmber, "Sửa chữa"),
+            _ => (AppTheme.TextMuted, "—")
+        };
+
+        private static Color Blend(Color a, Color b, float t)
+        {
+            return Color.FromArgb(
+                (int)(a.R + (b.R - a.R) * t),
+                (int)(a.G + (b.G - a.G) * t),
+                (int)(a.B + (b.B - a.B) * t));
+        }
+
+        private Control CreateEmptyState()
+        {
+            var panel = new Panel { Size = new Size(640, 320), Margin = new Padding(40), BackColor = Color.Transparent };
+            var img = AppIcons.Load(AppIcons.Empty.Door, 96, AppTheme.TextMuted);
+            if (img != null)
+            {
+                panel.Controls.Add(new PictureBox
+                {
+                    Image = img,
+                    Size = new Size(96, 96),
+                    Location = new Point(272, 40),
+                    SizeMode = PictureBoxSizeMode.CenterImage,
+                    BackColor = Color.Transparent
+                });
+            }
+            panel.Controls.Add(new Label
+            {
+                Text = "Chưa có phòng nào",
+                Font = AppTheme.FontSubtitle,
+                ForeColor = AppTheme.TextPrimary,
+                Location = new Point(0, 156),
+                Size = new Size(640, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            });
+            panel.Controls.Add(new Label
+            {
+                Text = "Bấm 'Thêm phòng' ở góc phải để bắt đầu quản lý.",
+                Font = AppTheme.FontBody,
+                ForeColor = AppTheme.TextSecondary,
+                Location = new Point(0, 192),
+                Size = new Size(640, 24),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            });
+            return panel;
+        }
+
+        private void EditRoom(int id)
+        {
+            using var frm = new Forms.Phong.FrmPhongEdit(id);
             if (frm.ShowDialog() == DialogResult.OK) LoadData();
         }
 
-        private void DeleteSelected()
+        private void DeleteRoom(int id, string name)
         {
-            if (dgv.CurrentRow == null) return;
-            int id = (int)dgv.CurrentRow.Cells["Id"].Value;
-            string name = dgv.CurrentRow.Cells["TenPhong"].Value?.ToString() ?? "";
             if (MessageBox.Show($"Xóa phòng \"{name}\"?", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                if (!_svc.Delete(id)) MessageBox.Show("Không thể xóa phòng đang có hợp đồng hiệu lực.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (!_svc.Delete(id))
+                    MessageBox.Show("Không thể xóa phòng đang có hợp đồng hiệu lực.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 else LoadData();
             }
+        }
+    }
+
+    internal sealed class DoubleBufferedPanel : Panel
+    {
+        public DoubleBufferedPanel()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.ResizeRedraw, true);
         }
     }
 }

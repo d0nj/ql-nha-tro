@@ -41,14 +41,17 @@ namespace QLNhaTro.UserControls
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 2,
+                RowCount = 3,
                 BackColor = Color.Transparent,
                 Margin = new Padding(0)
             };
             root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 150));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 96));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 140));
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             content.Controls.Add(root);
+
+            root.Controls.Add(CreateHeroBanner(), 0, 0);
 
             var pnlCards = new TableLayoutPanel
             {
@@ -63,15 +66,15 @@ namespace QLNhaTro.UserControls
                 pnlCards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
             pnlCards.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            pnlCards.Controls.Add(CreateStatCard("Tổng phòng", totalPhong.ToString(), AppTheme.AccentBlue, "Số phòng đang quản lý"), 0, 0);
-            pnlCards.Controls.Add(CreateStatCard("Phòng trống", phongTrong.ToString(), AppTheme.AccentGreen, "Sẵn sàng cho thuê"), 1, 0);
-            pnlCards.Controls.Add(CreateStatCard("Đang thuê", phongDangThue.ToString(), AppTheme.AccentAmber, "Phòng có hợp đồng"), 2, 0);
-            pnlCards.Controls.Add(CreateStatCard("Doanh thu tháng", FormatHelper.FormatVND(doanhThu), AppTheme.AccentPurple, $"Tháng {DateTime.Now:MM/yyyy}"), 3, 0);
-            var lastCard = CreateStatCard("Khách thuê", tongKhach.ToString(), AppTheme.AccentCyan, $"{chuaThanhToan} hóa đơn chưa thanh toán");
+            pnlCards.Controls.Add(CreateStatCard("Tổng phòng", totalPhong.ToString(), AppTheme.AccentBlue, "Số phòng đang quản lý", AppIcons.Kpi.Building), 0, 0);
+            pnlCards.Controls.Add(CreateStatCard("Phòng trống", phongTrong.ToString(), AppTheme.AccentGreen, "Sẵn sàng cho thuê", AppIcons.Kpi.DoorOpen), 1, 0);
+            pnlCards.Controls.Add(CreateStatCard("Đang thuê", phongDangThue.ToString(), AppTheme.AccentAmber, "Phòng có hợp đồng", AppIcons.Kpi.DoorClosed), 2, 0);
+            pnlCards.Controls.Add(CreateStatCard("Doanh thu tháng", FormatHelper.FormatVND(doanhThu), AppTheme.AccentPurple, $"Tháng {DateTime.Now:MM/yyyy}", AppIcons.Kpi.Wallet), 3, 0);
+            var lastCard = CreateStatCard("Khách thuê", tongKhach.ToString(), AppTheme.AccentCyan, $"{chuaThanhToan} hóa đơn chưa thanh toán", AppIcons.Kpi.Users);
             lastCard.Margin = new Padding(0, 0, 0, 0);
             pnlCards.Controls.Add(lastCard, 4, 0);
             
-            root.Controls.Add(pnlCards, 0, 0);
+            root.Controls.Add(pnlCards, 0, 1);
 
             var pnlBottom = new TableLayoutPanel
             {
@@ -85,7 +88,7 @@ namespace QLNhaTro.UserControls
             pnlBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             pnlBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             pnlBottom.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            root.Controls.Add(pnlBottom, 0, 1);
+            root.Controls.Add(pnlBottom, 0, 2);
 
             var dgvExpiring = CreateStyledDgv();
             dgvExpiring.Columns.Add("MaHD", "Mã HĐ");
@@ -111,7 +114,7 @@ namespace QLNhaTro.UserControls
             pnlBottom.Controls.Add(cardUnpaid, 1, 0);
         }
 
-        private Panel CreateStatCard(string label, string value, Color accentColor, string detail)
+        private Panel CreateStatCard(string label, string value, Color accentColor, string detail, string? iconName = null)
         {
             var card = new Panel
             {
@@ -134,6 +137,27 @@ namespace QLNhaTro.UserControls
                 using var accentBrush = new SolidBrush(accentColor);
                 e.Graphics.FillRectangle(accentBrush, accentRect);
             };
+
+            if (!string.IsNullOrEmpty(iconName))
+            {
+                var iconImg = AppIcons.Load(iconName, 32, accentColor);
+                if (iconImg != null)
+                {
+                    var iconBox = new PictureBox
+                    {
+                        Image = iconImg,
+                        Size = new Size(36, 36),
+                        SizeMode = PictureBoxSizeMode.CenterImage,
+                        BackColor = Color.Transparent,
+                        Anchor = AnchorStyles.Top | AnchorStyles.Right
+                    };
+                    card.Controls.Add(iconBox);
+                    iconBox.BringToFront();
+                    void PositionIcon() => iconBox.Location = new Point(Math.Max(0, card.Width - iconBox.Width - 16), 12);
+                    card.SizeChanged += (s, e) => PositionIcon();
+                    card.HandleCreated += (s, e) => PositionIcon();
+                }
+            }
 
             var lblLabel = new Label
             {
@@ -254,6 +278,65 @@ namespace QLNhaTro.UserControls
 
             card.Controls.Add(layout);
             return card;
+        }
+
+        private Panel CreateHeroBanner()
+        {
+            var banner = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 0, 0, 0),
+                BackColor = AppTheme.SidebarBg
+            };
+
+            banner.Paint += (s, e) =>
+            {
+                var rect = banner.ClientRectangle;
+                if (rect.Width < 10 || rect.Height < 10) return;
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                var hero = AppIcons.LoadImageCropped(AppIcons.Image.DashboardHero, rect.Width, rect.Height);
+                if (hero != null)
+                {
+                    e.Graphics.DrawImage(hero, 0, 0, rect.Width, rect.Height);
+                    using var overlay = new LinearGradientBrush(
+                        new Rectangle(0, 0, rect.Width, rect.Height),
+                        Color.FromArgb(190, AppTheme.SidebarBg),
+                        Color.FromArgb(80, AppTheme.SidebarBg),
+                        LinearGradientMode.Horizontal);
+                    e.Graphics.FillRectangle(overlay, rect);
+                }
+                else
+                {
+                    using var bg = new SolidBrush(AppTheme.SidebarBg);
+                    e.Graphics.FillRectangle(bg, rect);
+                }
+
+                using var borderPen = new Pen(AppTheme.CardBorder);
+                e.Graphics.DrawRectangle(borderPen, 0, 0, rect.Width - 1, rect.Height - 1);
+
+                using var titleBrush = new SolidBrush(AppTheme.SidebarLogoText);
+                using var subBrush = new SolidBrush(Color.FromArgb(220, AppTheme.SidebarLogoText));
+                var nhaTroName = TryGetPropertyName();
+                e.Graphics.DrawString(nhaTroName, new Font("Segoe UI Semibold", 18F, FontStyle.Bold), titleBrush, 20, 18);
+                e.Graphics.DrawString($"Hôm nay {DateTime.Now:dddd, dd/MM/yyyy}", new Font("Segoe UI", 10F), subBrush, 22, 54);
+            };
+
+            return banner;
+        }
+
+        private static string TryGetPropertyName()
+        {
+            try
+            {
+                var svc = new Services.CaiDatService();
+                var cd = svc.Get();
+                return string.IsNullOrWhiteSpace(cd.TenNhaTro) ? "Quản Lý Nhà Trọ" : cd.TenNhaTro;
+            }
+            catch
+            {
+                return "Quản Lý Nhà Trọ";
+            }
         }
 
         private DataGridView CreateStyledDgv()

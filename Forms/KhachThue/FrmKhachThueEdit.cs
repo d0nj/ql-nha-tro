@@ -42,17 +42,19 @@ namespace QLNhaTro.Forms.KhachThue
             AddLabel(card, "Giới tính", y);
             cboGioiTinh = new ComboBox { Location = new Point(ix, y), Size = new Size(iw, 32), DropDownStyle = ComboBoxStyle.DropDownList, Font = AppTheme.FontBody };
             cboGioiTinh.Items.AddRange(new[] { "Nam", "Nữ" }); cboGioiTinh.SelectedIndex = 0;
+            AppTheme.StyleInputControl(cboGioiTinh);
             card.Controls.Add(cboGioiTinh); y += 44;
             AddLabel(card, "Ngày sinh", y);
             dtpNgaySinh = new DateTimePicker { Location = new Point(ix, y), Size = new Size(iw, 32), Format = DateTimePickerFormat.Short, ShowCheckBox = true, Checked = false, Font = AppTheme.FontBody };
+            AppTheme.StyleInputControl(dtpNgaySinh);
             card.Controls.Add(dtpNgaySinh); y += 44;
             AddLabel(card, "Nghề nghiệp", y); txtNgheNghiep = AddTxt(card, ix, y, iw); y += 44;
             AddLabel(card, "Quê quán", y); txtQueQuan = AddTxt(card, ix, y, iw);
 
-            var btnSave = AppTheme.CreatePrimaryButton("Lưu", 120, 40);
+            var btnSave = AppTheme.CreatePrimaryButton("Lưu", 120, 40, AppIcons.Btn.Save);
             btnSave.Location = new Point(20, 454);
             btnSave.Click += BtnSave_Click;
-            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40);
+            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40, AppIcons.Btn.Cancel);
             btnCancel.Location = new Point(148, 454);
             btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
             txtCCCD.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
@@ -92,6 +94,6 @@ namespace QLNhaTro.Forms.KhachThue
         }
 
         private void AddLabel(Panel p, string t, int y) { p.Controls.Add(new Label { Text = t, Location = new Point(20, y + 6), AutoSize = true, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontBody }); }
-        private TextBox AddTxt(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; p.Controls.Add(t); return t; }
+        private TextBox AddTxt(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; AppTheme.StyleInputControl(t); p.Controls.Add(t); return t; }
     }
 }

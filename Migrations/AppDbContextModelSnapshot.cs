@@ -48,6 +48,11 @@ namespace QLNhaTro.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ThemeMode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.ToTable("CaiDats");
@@ -60,7 +65,8 @@ namespace QLNhaTro.Migrations
                             GiaNuoc = 15000m,
                             NgayCapNhat = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PhiDichVu = 100000m,
-                            TenNhaTro = "Nhà Trọ"
+                            TenNhaTro = "Nhà Trọ",
+                            ThemeMode = "light"
                         });
                 });
 

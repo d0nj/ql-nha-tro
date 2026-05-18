@@ -10,6 +10,8 @@ namespace QLNhaTro.UserControls
         private NumericUpDown nudNam = null!;
         private DataGridView dgv = null!;
         private Panel pnlChart = null!;
+        private Panel pnlKpis = null!;
+        private Label lblKpiTotal = null!, lblKpiAvg = null!, lblKpiBest = null!;
 
         public UcBaoCao()
         {
@@ -26,27 +28,43 @@ namespace QLNhaTro.UserControls
             AppTheme.StyleCommandControl(nudNam, 88);
             nudNam.ValueChanged += (s, e) => LoadData();
 
-            var btnExport = AppTheme.CreateSecondaryButton("Xuất CSV", 116);
+            var btnExport = AppTheme.CreateSecondaryButton("Xuất CSV", 132, 36, AppIcons.Btn.Export);
             btnExport.Click += BtnExport_Click;
             filters.Controls.Add(nudNam);
             actions.Controls.Add(btnExport);
+
+            var root = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = AppTheme.ContentBg,
+                Padding = new Padding(0)
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 110));
+            root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            content.Controls.Add(root);
+
+            pnlKpis = BuildKpiRow();
+            root.Controls.Add(pnlKpis, 0, 0);
 
             var splitter = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Horizontal,
-                SplitterDistance = 300,
                 BackColor = AppTheme.ContentBg,
                 Panel1MinSize = 200,
                 Panel2MinSize = 100
             };
-            content.Controls.Add(splitter);
+            root.Controls.Add(splitter, 0, 1);
 
             pnlChart = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.White,
-                Padding = new Padding(24, 16, 24, 16)
+                BackColor = AppTheme.CardBg,
+                Padding = new Padding(24, 16, 24, 16),
+                Margin = new Padding(0, 12, 0, 0)
             };
             pnlChart.Paint += PnlChart_Paint;
             splitter.Panel1.Controls.Add(pnlChart);
@@ -56,17 +74,70 @@ namespace QLNhaTro.UserControls
             splitter.Panel2.Controls.Add(dgv);
         }
 
+        private Panel BuildKpiRow()
+        {
+            var grid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 1,
+                BackColor = Color.Transparent,
+                Padding = new Padding(0)
+            };
+            for (int i = 0; i < 3; i++) grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.34f));
+            grid.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            grid.Controls.Add(BuildKpiCard("Tổng doanh thu năm", AppTheme.AccentBlue, AppIcons.Kpi.Wallet, out lblKpiTotal), 0, 0);
+            grid.Controls.Add(BuildKpiCard("Trung bình / tháng", AppTheme.AccentGreen, AppIcons.Misc.ArrowUp, out lblKpiAvg), 1, 0);
+            grid.Controls.Add(BuildKpiCard("Tháng cao nhất", AppTheme.AccentAmber, AppIcons.Kpi.Receipt, out lblKpiBest), 2, 0);
+            return grid;
+        }
+
+        private static Panel BuildKpiCard(string label, Color accent, string iconName, out Label valueLabel)
+        {
+            var card = new Panel { Dock = DockStyle.Fill, BackColor = AppTheme.CardBg, Margin = new Padding(0, 0, 16, 0), Padding = new Padding(16) };
+            card.Paint += (s, e) =>
+            {
+                using var pen = new Pen(AppTheme.CardBorder);
+                e.Graphics.DrawRectangle(pen, 0, 0, card.Width - 1, card.Height - 1);
+                using var stripe = new SolidBrush(accent);
+                e.Graphics.FillRectangle(stripe, 0, 0, 4, card.Height);
+            };
+            var lblTitle = new Label { Text = label.ToUpperInvariant(), Font = AppTheme.FontCardLabel, ForeColor = AppTheme.TextSecondary, Location = new Point(16, 14), AutoSize = true, BackColor = Color.Transparent, UseMnemonic = false };
+            valueLabel = new Label { Text = "—", Font = new Font("Segoe UI", 17F, FontStyle.Bold), ForeColor = AppTheme.TextPrimary, Location = new Point(16, 38), Size = new Size(260, 32), BackColor = Color.Transparent, AutoEllipsis = true, UseMnemonic = false };
+            card.Controls.Add(lblTitle);
+            card.Controls.Add(valueLabel);
+            var iconImg = AppIcons.Load(iconName, 28, accent);
+            if (iconImg != null)
+            {
+                var pic = new PictureBox { Image = iconImg, Size = new Size(32, 32), SizeMode = PictureBoxSizeMode.CenterImage, BackColor = Color.Transparent, Anchor = AnchorStyles.Top | AnchorStyles.Right };
+                card.Controls.Add(pic);
+                void Place() => pic.Location = new Point(Math.Max(0, card.Width - 48), 14);
+                card.SizeChanged += (s, e) => Place();
+                card.HandleCreated += (s, e) => Place();
+            }
+            return card;
+        }
+
         private void LoadData()
         {
             int nam = (int)nudNam.Value;
             dgv.Columns.Clear();
             dgv.Columns.Add("Thang", "Tháng"); dgv.Columns.Add("DoanhThu", "Doanh thu");
             dgv.Rows.Clear();
+            decimal total = 0, best = 0;
+            int bestMonth = 0, monthsWithRevenue = 0;
             for (int i = 1; i <= 12; i++)
             {
                 decimal rev = _svc.GetRevenueByMonth(i, nam);
                 dgv.Rows.Add($"Tháng {i}", FormatHelper.FormatVND(rev));
+                total += rev;
+                if (rev > 0) monthsWithRevenue++;
+                if (rev > best) { best = rev; bestMonth = i; }
             }
+            lblKpiTotal.Text = FormatHelper.FormatVND(total);
+            lblKpiAvg.Text = FormatHelper.FormatVND(monthsWithRevenue > 0 ? total / monthsWithRevenue : 0);
+            lblKpiBest.Text = bestMonth == 0 ? "—" : $"T{bestMonth} · {FormatHelper.FormatVND(best)}";
             pnlChart.Invalidate();
         }
 
@@ -90,7 +161,7 @@ namespace QLNhaTro.UserControls
             g.DrawString($"Doanh thu năm {nam}", AppTheme.FontSubtitle, new SolidBrush(AppTheme.TextPrimary), pad, 8);
 
             // Y-axis grid lines
-            using var gridPen = new Pen(Color.FromArgb(243, 244, 246), 1);
+            using var gridPen = new Pen(AppTheme.DgvGridLine, 1);
             for (int i = 0; i <= 5; i++)
             {
                 int y = top + chartH - (int)(chartH * i / 5.0);
@@ -102,8 +173,8 @@ namespace QLNhaTro.UserControls
             // Bars
             var barColors = new (Color start, Color end)[]
             {
-                (Color.FromArgb(99, 102, 241), Color.FromArgb(79, 70, 229)),
-                (Color.FromArgb(59, 130, 246), Color.FromArgb(37, 99, 235)),
+                (AppTheme.AccentBlue, Lighten(AppTheme.AccentBlue, -0.15f)),
+                (AppTheme.AccentCyan, Lighten(AppTheme.AccentCyan, -0.15f)),
             };
 
             for (int i = 0; i < 12; i++)
@@ -133,6 +204,17 @@ namespace QLNhaTro.UserControls
                 // Month label
                 g.DrawString($"T{i + 1}", AppTheme.FontSmall, new SolidBrush(AppTheme.TextSecondary), x + barW / 2 - 10, top + chartH + 6);
             }
+        }
+
+        private static Color Lighten(Color c, float amount)
+        {
+            float r = c.R + (255 - c.R) * amount;
+            float g = c.G + (255 - c.G) * amount;
+            float b = c.B + (255 - c.B) * amount;
+            return Color.FromArgb(
+                Math.Clamp((int)r, 0, 255),
+                Math.Clamp((int)g, 0, 255),
+                Math.Clamp((int)b, 0, 255));
         }
 
         private void BtnExport_Click(object? sender, EventArgs e)

@@ -44,17 +44,19 @@ namespace QLNhaTro.Forms.Phong
             cboTrangThai = new ComboBox { Location = new Point(inputX, y), Size = new Size(inputW, 32), DropDownStyle = ComboBoxStyle.DropDownList, Font = AppTheme.FontBody };
             cboTrangThai.Items.AddRange(new[] { "Trống", "Đang thuê", "Sửa chữa" });
             cboTrangThai.SelectedIndex = 0;
+            AppTheme.StyleInputControl(cboTrangThai);
             card.Controls.Add(cboTrangThai); y += 44;
             AddLabel(card, "Mô tả", y);
             txtMoTa = new TextBox { Location = new Point(inputX, y), Size = new Size(inputW, 60), Multiline = true, Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle };
+            AppTheme.StyleInputControl(txtMoTa);
             card.Controls.Add(txtMoTa);
 
             // Buttons
-            var btnSave = AppTheme.CreatePrimaryButton("Lưu", 120, 40);
+            var btnSave = AppTheme.CreatePrimaryButton("Lưu", 120, 40, AppIcons.Btn.Save);
             btnSave.Location = new Point(20, 434);
             btnSave.Click += BtnSave_Click;
 
-            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40);
+            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40, AppIcons.Btn.Cancel);
             btnCancel.Location = new Point(148, 434);
             btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
 
@@ -94,6 +96,6 @@ namespace QLNhaTro.Forms.Phong
         }
 
         private void AddLabel(Panel p, string text, int y) { p.Controls.Add(new Label { Text = text, Location = new Point(20, y + 6), AutoSize = true, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontBody }); }
-        private TextBox AddTextBox(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; p.Controls.Add(t); return t; }
+        private TextBox AddTextBox(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; AppTheme.StyleInputControl(t); p.Controls.Add(t); return t; }
     }
 }

@@ -34,7 +34,7 @@ namespace QLNhaTro.UserControls
             nudNam.ValueChanged += (s, e) => LoadData();
             filters.Controls.Add(nudNam);
 
-            var btnSave = AppTheme.CreateSuccessButton("💾 Lưu chỉ số", 124);
+            var btnSave = AppTheme.CreateSuccessButton("Lưu chỉ số", 140, 36, AppIcons.Btn.Save);
             btnSave.Click += BtnSave_Click;
             actions.Controls.Add(btnSave);
 

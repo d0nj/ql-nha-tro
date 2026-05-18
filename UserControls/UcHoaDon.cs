@@ -43,10 +43,10 @@ namespace QLNhaTro.UserControls
             AppTheme.StyleCommandControl(nudNam, 78);
             nudNam.ValueChanged += (s, e) => LoadData();
 
-            var btnGenerate = AppTheme.CreatePrimaryButton("Tạo hóa đơn", 132);
+            var btnGenerate = AppTheme.CreatePrimaryButton("Tạo hóa đơn", 148, 36, AppIcons.Btn.Add);
             btnGenerate.Click += BtnGenerate_Click;
 
-            var btnMarkPaid = AppTheme.CreateSuccessButton("Đã thanh toán", 148);
+            var btnMarkPaid = AppTheme.CreateSuccessButton("Đã thanh toán", 164, 36, AppIcons.Btn.Check);
             btnMarkPaid.Click += BtnMarkPaid_Click;
 
             filters.Controls.AddRange(new Control[] { AppTheme.CreateCommandLabel("Tìm kiếm"), txtSearch, AppTheme.CreateCommandLabel("Trạng thái"), cboTrangThai, lblThang, nudThang, lblNam, nudNam });
@@ -54,6 +54,13 @@ namespace QLNhaTro.UserControls
 
             dgv = new DataGridView { Dock = DockStyle.Fill, Font = AppTheme.FontSmall };
             AppTheme.StyleDataGridView(dgv);
+            AppTheme.EnableStatusPillColumn(dgv, "TrangThai", val =>
+            {
+                var s = val?.ToString();
+                if (s == "Đã TT") return (AppTheme.AccentGreen, s);
+                if (s == "Chưa TT") return (AppTheme.AccentRed, s);
+                return null;
+            });
             content.Controls.Add(dgv);
         }
 
@@ -77,11 +84,7 @@ namespace QLNhaTro.UserControls
                     $"{hd.Thang:D2}/{hd.Nam}", FormatHelper.FormatVND(hd.TienPhong), FormatHelper.FormatVND(hd.TienDien),
                     FormatHelper.FormatVND(hd.TienNuoc), FormatHelper.FormatVND(hd.PhiDichVu), FormatHelper.FormatVND(hd.TongTien),
                     hd.TrangThai == TrangThaiHoaDon.DaThanhToan ? "Đã TT" : "Chưa TT");
-                if (hd.TrangThai == TrangThaiHoaDon.ChuaThanhToan)
-                {
-                    dgv.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(254, 252, 232);
-                    dgv.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(161, 98, 7);
-                }
+                _ = rowIdx;
             }
         }
 

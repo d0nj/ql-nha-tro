@@ -34,18 +34,22 @@ namespace QLNhaTro.Forms.HopDong
             // Inputs
             int ix = 20, iw = 260;
             var lblHoTen = new Label { Text = "Họ Tên (*)", Location = new Point(ix, 10), AutoSize = true, Font = AppTheme.FontCardLabel, ForeColor = AppTheme.TextSecondary };
-            txtHoTen = new TextBox { Location = new Point(ix, 30), Width = iw, Font = AppTheme.FontBody };
+            txtHoTen = new TextBox { Location = new Point(ix, 30), Width = iw, Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle };
+            AppTheme.StyleInputControl(txtHoTen);
             
             var lblCCCD = new Label { Text = "CCCD", Location = new Point(ix + iw + 20, 10), AutoSize = true, Font = AppTheme.FontCardLabel, ForeColor = AppTheme.TextSecondary };
-            txtCCCD = new TextBox { Location = new Point(ix + iw + 20, 30), Width = iw, Font = AppTheme.FontBody };
+            txtCCCD = new TextBox { Location = new Point(ix + iw + 20, 30), Width = iw, Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle };
+            AppTheme.StyleInputControl(txtCCCD);
 
             var lblSDT = new Label { Text = "Số ĐT", Location = new Point(ix, 70), AutoSize = true, Font = AppTheme.FontCardLabel, ForeColor = AppTheme.TextSecondary };
-            txtSDT = new TextBox { Location = new Point(ix, 90), Width = iw, Font = AppTheme.FontBody };
+            txtSDT = new TextBox { Location = new Point(ix, 90), Width = iw, Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle };
+            AppTheme.StyleInputControl(txtSDT);
 
             var lblQuanHe = new Label { Text = "Quan hệ (với người thuê chính)", Location = new Point(ix + iw + 20, 70), AutoSize = true, Font = AppTheme.FontCardLabel, ForeColor = AppTheme.TextSecondary };
-            txtQuanHe = new TextBox { Location = new Point(ix + iw + 20, 90), Width = iw - 110, Font = AppTheme.FontBody };
+            txtQuanHe = new TextBox { Location = new Point(ix + iw + 20, 90), Width = iw - 110, Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle };
+            AppTheme.StyleInputControl(txtQuanHe);
 
-            btnAdd = AppTheme.CreatePrimaryButton("Thêm", 100);
+            btnAdd = AppTheme.CreatePrimaryButton("Thêm", 100, 36, AppIcons.Btn.Add);
             btnAdd.Location = new Point(ix + iw + 20 + iw - 100, 89);
             btnAdd.Click += (s, e) => AddMember();
 

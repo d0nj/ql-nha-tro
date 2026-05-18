@@ -10,6 +10,9 @@ namespace QLNhaTro.Forms.Main
         private Panel pnlContent = null!;
         private Label lblFooter = null!;
         private UserControl? _activeControl;
+        private string _activeTitle = "Trang chủ";
+        private Func<UserControl> _activeFactory = () => new UserControls.UcDashboard();
+        private Button _themeToggle = null!;
 
         public FrmMain()
         {
@@ -17,7 +20,7 @@ namespace QLNhaTro.Forms.Main
             AppTheme.ApplySystemTitleBar(this);
             SetupForm();
             BuildShell();
-            NavigateTo("Trang chủ", () => new UserControls.UcDashboard());
+            NavigateTo(_activeTitle, _activeFactory);
         }
 
         private void SetupForm()
@@ -79,16 +82,26 @@ namespace QLNhaTro.Forms.Main
                 Padding = new Padding(22, 20, 22, 14)
             };
 
-            var mark = new Label
-            {
-                Text = "\uE825", // Building icon
-                Size = new Size(36, 36),
-                Location = new Point(22, 24),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent,
-                ForeColor = AppTheme.SidebarLogoText,
-                Font = new Font("Segoe MDL2 Assets", 16F)
-            };
+            var markImg = AppIcons.Load(AppIcons.Logo.Home, 30, AppTheme.SidebarLogoText);
+            Control mark = markImg != null
+                ? new PictureBox
+                {
+                    Image = markImg,
+                    Size = new Size(36, 36),
+                    Location = new Point(22, 24),
+                    SizeMode = PictureBoxSizeMode.CenterImage,
+                    BackColor = Color.Transparent
+                }
+                : new Label
+                {
+                    Text = "\uE825",
+                    Size = new Size(36, 36),
+                    Location = new Point(22, 24),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.Transparent,
+                    ForeColor = AppTheme.SidebarLogoText,
+                    Font = new Font("Segoe MDL2 Assets", 16F)
+                };
             var title = new Label
             {
                 Text = "QL Nhà Trọ",
@@ -100,6 +113,9 @@ namespace QLNhaTro.Forms.Main
             };
             logo.Controls.AddRange(new Control[] { mark, title });
             sidebar.Controls.Add(logo);
+
+            _themeToggle = BuildThemeToggle();
+            sidebar.Controls.Add(_themeToggle);
 
             lblFooter = new Label
             {
@@ -127,21 +143,21 @@ namespace QLNhaTro.Forms.Main
             sidebar.Controls.Add(nav);
             nav.BringToFront();
 
-            var menuItems = new (string text, Func<UserControl> factory)[]
+            var menuItems = new (string text, string icon, Func<UserControl> factory)[]
             {
-                ("Trang chủ",    () => new UserControls.UcDashboard()),
-                ("Phòng",        () => new UserControls.UcPhong()),
-                ("Khách thuê",   () => new UserControls.UcKhachThue()),
-                ("Hợp đồng",     () => new UserControls.UcHopDong()),
-                ("Điện nước",    () => new UserControls.UcDienNuoc()),
-                ("Hóa đơn",      () => new UserControls.UcHoaDon()),
-                ("Báo cáo",      () => new UserControls.UcBaoCao()),
-                ("Cài đặt",      () => new UserControls.UcCaiDat()),
+                ("Trang chủ",    AppIcons.Nav.Dashboard, () => new UserControls.UcDashboard()),
+                ("Phòng",        AppIcons.Nav.Room,      () => new UserControls.UcPhong()),
+                ("Khách thuê",   AppIcons.Nav.Tenant,    () => new UserControls.UcKhachThue()),
+                ("Hợp đồng",     AppIcons.Nav.Contract,  () => new UserControls.UcHopDong()),
+                ("Điện nước",    AppIcons.Nav.Utility,   () => new UserControls.UcDienNuoc()),
+                ("Hóa đơn",      AppIcons.Nav.Invoice,   () => new UserControls.UcHoaDon()),
+                ("Báo cáo",      AppIcons.Nav.Report,    () => new UserControls.UcBaoCao()),
+                ("Cài đặt",      AppIcons.Nav.Settings,  () => new UserControls.UcCaiDat()),
             };
 
-            foreach (var (text, factory) in menuItems)
+            foreach (var (text, icon, factory) in menuItems)
             {
-                var button = CreateNavButton(text);
+                var button = CreateNavButton(text, icon);
                 button.Click += (s, e) => NavigateTo(text, factory);
                 nav.Controls.Add(button);
                 _navButtons[text] = button;
@@ -150,31 +166,39 @@ namespace QLNhaTro.Forms.Main
             return sidebar;
         }
 
-        private Button CreateNavButton(string text)
+        private Button CreateNavButton(string text, string iconName)
         {
             var button = new Button
             {
-                Text = text,
+                Text = "   " + text,
                 Width = 204,
                 Height = 42,
                 Margin = new Padding(0, 0, 0, 6),
-                Padding = new Padding(14, 0, 0, 0),
+                Padding = new Padding(12, 0, 0, 0),
                 TextAlign = ContentAlignment.MiddleLeft,
+                ImageAlign = ContentAlignment.MiddleLeft,
+                TextImageRelation = TextImageRelation.ImageBeforeText,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.Transparent,
                 ForeColor = AppTheme.SidebarItemDefault,
                 Font = AppTheme.FontSidebar,
                 Cursor = Cursors.Hand,
-                Tag = text
+                Tag = new NavTag(text, iconName)
             };
             button.FlatAppearance.BorderSize = 0;
             button.FlatAppearance.MouseOverBackColor = AppTheme.SidebarItemHover;
             button.FlatAppearance.MouseDownBackColor = AppTheme.SidebarItemActive;
+            button.Image = AppIcons.Load(iconName, 20, AppTheme.SidebarItemDefault);
             return button;
         }
 
+        private sealed record NavTag(string Title, string IconName);
+
         private void NavigateTo(string title, Func<UserControl> factory)
         {
+            _activeTitle = title;
+            _activeFactory = factory;
+
             foreach (var (key, button) in _navButtons)
             {
                 var active = key == title;
@@ -182,6 +206,11 @@ namespace QLNhaTro.Forms.Main
                 button.ForeColor = active ? AppTheme.SidebarItemActiveText : AppTheme.SidebarItemDefault;
                 button.Font = active ? AppTheme.FontSidebarActive : AppTheme.FontSidebar;
                 button.FlatAppearance.MouseOverBackColor = active ? AppTheme.SidebarItemActive : AppTheme.SidebarItemHover;
+                if (button.Tag is NavTag tag)
+                {
+                    button.Image = AppIcons.Load(tag.IconName, 20,
+                        active ? AppTheme.SidebarItemActiveText : AppTheme.SidebarItemDefault);
+                }
             }
 
             _activeControl?.Dispose();
@@ -190,6 +219,41 @@ namespace QLNhaTro.Forms.Main
 
             pnlContent.Controls.Clear();
             pnlContent.Controls.Add(_activeControl);
+        }
+
+        private Button BuildThemeToggle()
+        {
+            var btn = new Button
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                Margin = new Padding(14, 0, 14, 8),
+                Padding = new Padding(14, 0, 0, 0),
+                TextAlign = ContentAlignment.MiddleLeft,
+                ImageAlign = ContentAlignment.MiddleLeft,
+                TextImageRelation = TextImageRelation.ImageBeforeText,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.Transparent,
+                ForeColor = AppTheme.SidebarItemDefault,
+                Font = AppTheme.FontSidebar,
+                Cursor = Cursors.Hand,
+                Text = AppTheme.IsDark ? "   Chế độ sáng" : "   Chế độ tối"
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = AppTheme.SidebarItemHover;
+            btn.Image = AppIcons.Load(AppTheme.IsDark ? "theme_sun" : "theme_moon", 20, AppTheme.SidebarItemDefault);
+            btn.Click += (s, e) => ToggleTheme();
+            return btn;
+        }
+
+        private void ToggleTheme()
+        {
+            AppTheme.ToggleMode();
+            AppTheme.ApplySystemTitleBar(this);
+            BackColor = AppTheme.ContentBg;
+            _navButtons.Clear();
+            BuildShell();
+            NavigateTo(_activeTitle, _activeFactory);
         }
     }
 }

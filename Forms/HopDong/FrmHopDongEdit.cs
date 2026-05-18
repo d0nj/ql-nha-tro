@@ -38,6 +38,7 @@ namespace QLNhaTro.Forms.HopDong
             foreach (var r in rooms) cboPhong.Items.Add(new ComboItem(r.Id, $"{r.MaPhong} - {r.TenPhong} ({FormatHelper.FormatVND(r.GiaThue)})"));
             if (cboPhong.Items.Count > 0) cboPhong.SelectedIndex = 0;
             cboPhong.SelectedIndexChanged += (s, e) => { if (cboPhong.SelectedItem is ComboItem ci) { var p = _phongSvc.GetById(ci.Value); if (p != null) txtGiaThue.Text = p.GiaThue.ToString("N0"); } };
+            AppTheme.StyleInputControl(cboPhong);
             card.Controls.Add(cboPhong); y += 44;
 
             AddLabel(card, "Khách thuê", y);
@@ -45,15 +46,18 @@ namespace QLNhaTro.Forms.HopDong
             var tenants = _khachSvc.GetAvailableTenants();
             foreach (var t in tenants) cboKhach.Items.Add(new ComboItem(t.Id, $"{t.HoTen} ({t.CCCD ?? "N/A"})"));
             if (cboKhach.Items.Count > 0) cboKhach.SelectedIndex = 0;
+            AppTheme.StyleInputControl(cboKhach);
             card.Controls.Add(cboKhach); y += 44;
 
             AddLabel(card, "Ngày bắt đầu", y);
             dtpBatDau = new DateTimePicker { Location = new Point(ix, y), Size = new Size(iw, 32), Format = DateTimePickerFormat.Short, Font = AppTheme.FontBody };
+            AppTheme.StyleInputControl(dtpBatDau);
             card.Controls.Add(dtpBatDau); y += 44;
 
             AddLabel(card, "Ngày kết thúc", y);
             chkKetThuc = new CheckBox { Text = "", Location = new Point(ix, y + 4), AutoSize = true, Checked = true };
             dtpKetThuc = new DateTimePicker { Location = new Point(ix + 25, y), Size = new Size(iw - 25, 32), Format = DateTimePickerFormat.Short, Value = DateTime.Now.AddMonths(12), Font = AppTheme.FontBody };
+            AppTheme.StyleInputControl(dtpKetThuc);
             chkKetThuc.CheckedChanged += (s, e) => dtpKetThuc.Enabled = chkKetThuc.Checked;
             card.Controls.AddRange(new Control[] { chkKetThuc, dtpKetThuc }); y += 44;
 
@@ -62,11 +66,11 @@ namespace QLNhaTro.Forms.HopDong
             y += 44;
             AddLabel(card, "Tiền cọc (VNĐ)", y); txtTienCoc = AddTxt(card, ix, y, iw); txtTienCoc.Text = "0";
 
-            var btnSave = AppTheme.CreatePrimaryButton("Tạo hợp đồng", 150, 40);
+            var btnSave = AppTheme.CreatePrimaryButton("Tạo hợp đồng", 160, 40, AppIcons.Btn.Add);
             btnSave.Location = new Point(20, 374);
             btnSave.Click += BtnSave_Click;
-            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40);
-            btnCancel.Location = new Point(178, 374);
+            var btnCancel = AppTheme.CreateSecondaryButton("Hủy", 100, 40, AppIcons.Btn.Cancel);
+            btnCancel.Location = new Point(188, 374);
             btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
             txtGiaThue.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
             txtTienCoc.KeyPress += (s, e) => { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; };
@@ -93,7 +97,7 @@ namespace QLNhaTro.Forms.HopDong
         }
 
         private void AddLabel(Panel p, string t, int y) { p.Controls.Add(new Label { Text = t, Location = new Point(20, y + 6), AutoSize = true, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontBody }); }
-        private TextBox AddTxt(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; p.Controls.Add(t); return t; }
+        private TextBox AddTxt(Panel p, int x, int y, int w) { var t = new TextBox { Location = new Point(x, y), Size = new Size(w, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle }; AppTheme.StyleInputControl(t); p.Controls.Add(t); return t; }
 
         private class ComboItem
         {

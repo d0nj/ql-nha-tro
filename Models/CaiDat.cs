@@ -27,5 +27,8 @@ namespace QLNhaTro.Models
         public decimal PhiDichVu { get; set; } = 100000;
 
         public DateTime NgayCapNhat { get; set; } = DateTime.Now;
+
+        [MaxLength(10)]
+        public string ThemeMode { get; set; } = "light";
     }
 }

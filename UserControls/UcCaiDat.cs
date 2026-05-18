@@ -32,7 +32,7 @@ namespace QLNhaTro.UserControls
                 Margin = new Padding(0, 7, 0, 0)
             });
 
-            var btnSave = AppTheme.CreatePrimaryButton("Lưu cài đặt", 150, 36);
+            var btnSave = AppTheme.CreatePrimaryButton("Lưu cài đặt", 166, 36, AppIcons.Btn.Save);
             btnSave.Click += BtnSave_Click;
             actions.Controls.Add(btnSave);
 
@@ -74,7 +74,7 @@ namespace QLNhaTro.UserControls
             {
                 Margin = new Padding(0),
                 Width = width,
-                BackColor = Color.White,
+                BackColor = AppTheme.CardBg,
                 Padding = new Padding(24, 12, 24, 12)
             };
             section.Paint += (s, e) =>
@@ -83,11 +83,10 @@ namespace QLNhaTro.UserControls
                 using var borderPen = new Pen(AppTheme.CardBorder);
                 e.Graphics.DrawRectangle(borderPen, 0, 0, section.Width - 1, section.Height - 1);
 
-                // Title
-                e.Graphics.DrawString(title, AppTheme.FontSubtitle, new SolidBrush(AppTheme.TextPrimary), 24, 16);
+                using var titleBrush = new SolidBrush(AppTheme.TextPrimary);
+                e.Graphics.DrawString(title, AppTheme.FontSubtitle, titleBrush, 24, 16);
 
-                // Separator line
-                using var linePen = new Pen(Color.FromArgb(243, 244, 246));
+                using var linePen = new Pen(AppTheme.CardBorder);
                 e.Graphics.DrawLine(linePen, 24, 44, section.Width - 24, 44);
             };
             return section;
@@ -114,6 +113,7 @@ namespace QLNhaTro.UserControls
                 PlaceholderText = placeholder,
                 BorderStyle = BorderStyle.FixedSingle
             };
+            AppTheme.StyleInputControl(txt);
             parent.Controls.Add(txt);
 
             y += 44;

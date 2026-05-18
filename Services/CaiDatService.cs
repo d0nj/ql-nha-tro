@@ -24,5 +24,19 @@ namespace QLNhaTro.Services
             existing.NgayCapNhat = DateTime.Now;
             db.SaveChanges();
         }
+
+        public string GetThemeMode()
+        {
+            using var db = new AppDbContext();
+            return db.CaiDats.First().ThemeMode;
+        }
+
+        public void SaveThemeMode(string mode)
+        {
+            using var db = new AppDbContext();
+            var existing = db.CaiDats.First();
+            existing.ThemeMode = mode;
+            db.SaveChanges();
+        }
     }
 }
