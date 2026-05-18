@@ -8,6 +8,7 @@ namespace QLNhaTro.UserControls
     public class UcPhong : UserControl
     {
         private readonly PhongService _svc = new();
+        private Panel _content = null!;
         private FlowLayoutPanel pnlCards = null!;
         private TextBox txtSearch = null!;
         private ComboBox cboTrangThai = null!;
@@ -22,7 +23,7 @@ namespace QLNhaTro.UserControls
 
         private void BuildUI()
         {
-            var content = AppTheme.CreateListPage(this, "Phòng", "Danh sách phòng, giá thuê và trạng thái sử dụng.", out var filters, out var actions);
+            _content = AppTheme.CreateListPage(this, "Phòng", "Danh sách phòng, giá thuê và trạng thái sử dụng.", out var filters, out var actions);
 
             txtSearch = new TextBox { PlaceholderText = "Tìm mã phòng, tên phòng..." };
             AppTheme.StyleCommandControl(txtSearch, 300);
@@ -52,7 +53,7 @@ namespace QLNhaTro.UserControls
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = true
             };
-            content.Controls.Add(pnlCards);
+            _content.Controls.Add(pnlCards);
         }
 
         private void LoadData()
@@ -72,10 +73,16 @@ namespace QLNhaTro.UserControls
 
             if (data.Count == 0)
             {
-                pnlCards.Controls.Add(CreateEmptyState());
+                pnlCards.Visible = false;
+                var empty = CreateEmptyState();
+                _content.Controls.Add(empty);
+                empty.BringToFront();
             }
             else
             {
+                pnlCards.Visible = true;
+                foreach (var c in _content.Controls.Cast<Control>().Where(c => c != pnlCards).ToList())
+                    _content.Controls.Remove(c);
                 foreach (var p in data)
                     pnlCards.Controls.Add(CreateRoomCard(p));
             }
@@ -216,39 +223,57 @@ namespace QLNhaTro.UserControls
 
         private Control CreateEmptyState()
         {
-            var panel = new Panel { Size = new Size(640, 320), Margin = new Padding(40), BackColor = Color.Transparent };
-            var img = AppIcons.Load(AppIcons.Empty.Door, 96, AppTheme.TextMuted);
-            if (img != null)
+            var panel = new Panel
             {
-                panel.Controls.Add(new PictureBox
-                {
-                    Image = img,
-                    Size = new Size(96, 96),
-                    Location = new Point(272, 40),
-                    SizeMode = PictureBoxSizeMode.CenterImage,
-                    BackColor = Color.Transparent
-                });
-            }
-            panel.Controls.Add(new Label
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent
+            };
+
+            var pic = new PictureBox
+            {
+                Image = AppIcons.Load(AppIcons.Empty.Door, 96, AppTheme.TextMuted),
+                Size = new Size(96, 96),
+                SizeMode = PictureBoxSizeMode.CenterImage,
+                BackColor = Color.Transparent
+            };
+
+            var lblTitle = new Label
             {
                 Text = "Chưa có phòng nào",
                 Font = AppTheme.FontSubtitle,
                 ForeColor = AppTheme.TextPrimary,
-                Location = new Point(0, 156),
-                Size = new Size(640, 30),
+                Height = 30,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
-            });
-            panel.Controls.Add(new Label
+            };
+
+            var lblDesc = new Label
             {
                 Text = "Bấm 'Thêm phòng' ở góc phải để bắt đầu quản lý.",
                 Font = AppTheme.FontBody,
                 ForeColor = AppTheme.TextSecondary,
-                Location = new Point(0, 192),
-                Size = new Size(640, 24),
+                Height = 24,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
-            });
+            };
+
+            panel.Controls.Add(pic);
+            panel.Controls.Add(lblTitle);
+            panel.Controls.Add(lblDesc);
+
+            void CenterContents(object? s, EventArgs e)
+            {
+                int cx = panel.ClientSize.Width / 2;
+                int cy = panel.ClientSize.Height / 2;
+                pic.Location = new Point(cx - 48, cy - 72);
+                lblTitle.Location = new Point(0, cy + 28);
+                lblTitle.Width = panel.ClientSize.Width;
+                lblDesc.Location = new Point(0, cy + 64);
+                lblDesc.Width = panel.ClientSize.Width;
+            }
+
+            panel.Resize += CenterContents;
+            panel.HandleCreated += (s, e) => CenterContents(s, e);
             return panel;
         }
 

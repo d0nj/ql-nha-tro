@@ -19,12 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Icons\*.svg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Images\*.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Resources\Icons\*.svg" />
+    <EmbeddedResource Include="Resources\Images\*.jpg" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Svg;
 
@@ -94,8 +95,8 @@ namespace QLNhaTro.Helpers
             public const string RoomPlaceholder = "room_placeholder";
         }
 
-        private static readonly string IconsRoot = Path.Combine(AppContext.BaseDirectory, "Resources", "Icons");
-        private static readonly string ImagesRoot = Path.Combine(AppContext.BaseDirectory, "Resources", "Images");
+        private static readonly Assembly _assembly = Assembly.GetExecutingAssembly();
+        private static readonly string _resourcePrefix = "QLNhaTro.Resources";
         private static readonly Dictionary<string, Bitmap> _iconCache = new();
         private static readonly Dictionary<string, System.Drawing.Image> _imgCache = new();
         private static readonly object _lock = new();
@@ -109,17 +110,19 @@ namespace QLNhaTro.Helpers
             {
                 if (_iconCache.TryGetValue(key, out var cached)) return cached;
 
-                var path = Path.Combine(IconsRoot, name + ".svg");
-                if (!File.Exists(path)) return null;
+                var resourceName = $"{_resourcePrefix}.Icons.{name}.svg";
+                using var stream = _assembly.GetManifestResourceStream(resourceName);
+                if (stream == null) return null;
 
                 try
                 {
-                    var svgText = File.ReadAllText(path);
+                    using var reader = new StreamReader(stream, Encoding.UTF8);
+                    var svgText = reader.ReadToEnd();
                     var hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
                     svgText = svgText.Replace("currentColor", hex, StringComparison.OrdinalIgnoreCase);
 
-                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgText));
-                    var doc = SvgDocument.Open<SvgDocument>(stream);
+                    using var svgStream = new MemoryStream(Encoding.UTF8.GetBytes(svgText));
+                    var doc = SvgDocument.Open<SvgDocument>(svgStream);
                     doc.Width = size;
                     doc.Height = size;
                     var bmp = doc.Draw(size, size);
@@ -140,13 +143,16 @@ namespace QLNhaTro.Helpers
             {
                 if (_imgCache.TryGetValue(name, out var cached)) return cached;
 
-                var path = Path.Combine(ImagesRoot, name + ".jpg");
-                if (!File.Exists(path)) return null;
+                var resourceName = $"{_resourcePrefix}.Images.{name}.jpg";
+                using var stream = _assembly.GetManifestResourceStream(resourceName);
+                if (stream == null) return null;
 
                 try
                 {
-                    using var fs = File.OpenRead(path);
-                    var img = System.Drawing.Image.FromStream(fs);
+                    using var ms = new MemoryStream();
+                    stream.CopyTo(ms);
+                    ms.Position = 0;
+                    var img = System.Drawing.Image.FromStream(ms);
                     _imgCache[name] = img;
                     return img;
                 }
